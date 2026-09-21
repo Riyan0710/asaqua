@@ -212,7 +212,7 @@
     </div>
 
     <div class="form-group">
-      <label>Ganti Logo Toko</label>
+      <label>Ganti Logo Toko (Kustom)</label>
       <input type="file" id="in_logo_file" class="form-control" accept="image/*" onchange="handleLogoUpload(event)">
     </div>
 
@@ -331,7 +331,10 @@
     </div>
 
     <div class="receipt-wrapper" id="receipt">
-      <div class="r-logo" id="logo_display_area"></div>
+      <!-- LOGO LANGSUNG MEMBACA FILE LOKAL logo.png -->
+      <div class="r-logo" id="logo_display_area">
+        <img src="logo.png" alt="Logo" onerror="this.style.display='none'">
+      </div>
 
       <div class="r-center">
         <div class="r-subname" id="out_sub_name">Asaqua</div>
@@ -629,7 +632,6 @@
         return;
       }
 
-      // Format data cetak dalam ESC/POS Command
       const subName = document.getElementById('in_sub_name').value;
       const addr1 = document.getElementById('in_addr1').value;
       const addr2 = document.getElementById('in_addr2').value;
@@ -684,7 +686,6 @@
       const encoder = new TextEncoder();
       const dataBytes = encoder.encode(textToPrint);
 
-      // Kirim chunk data per 512 bytes untuk mencegah buffer overflow
       const chunkSize = 512;
       for (let i = 0; i < dataBytes.length; i += chunkSize) {
         const chunk = dataBytes.slice(i, i + chunkSize);
