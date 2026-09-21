@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Aplikasi Edit & Cetak Struk - Gilang Asaqua</title>
+<title>Gilang Asaqua</title>
 <!-- Library untuk Ekspor PNG -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
@@ -104,7 +104,7 @@
   /* Ringkasan Saldo */
   .balance-card {
     background: #f8f9fa;
-    border: 1fr solid #ddd;
+    border: 1px solid #ddd;
     border-radius: 8px;
     padding: 12px;
     margin-bottom: 15px;
@@ -133,17 +133,6 @@
   }
   .archive-table th { background: #f1f1f1; }
 
-  .status-box {
-    width: 100%;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 12px;
-    margin-bottom: 12px;
-    text-align: center;
-    font-weight: bold;
-  }
-  .status-disconnected { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
-
   /* TAMPILAN PRATINJAU THERMAL */
   .receipt-wrapper {
     background: #fff;
@@ -171,7 +160,7 @@
 
   @media print {
     body { background: #fff; padding: 0; margin: 0; }
-    .form-panel, .panel h2, .controls-no-print, .status-box { display: none !important; }
+    .form-panel, .panel h2, .controls-no-print { display: none !important; }
     .preview-panel { width: 100% !important; margin: 0 !important; padding: 0 !important; }
     .receipt-wrapper { border: none !important; box-shadow: none !important; width: 100% !important; max-width: 58mm; padding: 1mm !important; }
   }
@@ -390,11 +379,14 @@
     </div>
 
     <div class="controls-no-print" style="width: 100%; margin-top: 15px;">
+      <button class="btn btn-bt" onclick="printBluetooth()">
+        📲 Cetak ke Bluetooth
+      </button>
       <button class="btn btn-png" onclick="exportToPNG()">
         🖼️ Ekspor Nota Ke Gambar (PNG)
       </button>
-      <button class="btn btn-bt" onclick="window.print()">
-        🖨️ Cetak / Simpan PDF
+      <button class="btn btn-print-system" onclick="window.print()">
+        🖨️ Cetak System / Simpan PDF
       </button>
     </div>
   </div>
@@ -473,7 +465,6 @@
   }
 
   function renderReceipt() {
-    // Basic text updates
     document.getElementById('out_sub_name').innerText = document.getElementById('in_sub_name').value;
     document.getElementById('out_addr1').innerText = document.getElementById('in_addr1').value;
     document.getElementById('out_addr2').innerText = document.getElementById('in_addr2').value;
@@ -491,7 +482,6 @@
     const txType = document.getElementById('in_tx_type').value;
     document.getElementById('out_tx_type_lbl').innerText = txType === 'IN' ? 'SALDO MASUK' : 'SALDO KELUAR';
 
-    // Render Items Struk
     const outItems = document.getElementById('out_items');
     outItems.innerHTML = '';
     items.forEach(item => {
@@ -521,7 +511,6 @@
     document.getElementById('out_change').innerText = formatRupiah(Math.max(0, payVal - total));
   }
 
-  // Feature: Ekspor PNG Nota
   function exportToPNG() {
     const receiptEl = document.getElementById('receipt');
     html2canvas(receiptEl, { scale: 2 }).then(canvas => {
@@ -532,7 +521,6 @@
     });
   }
 
-  // Feature: Arsip & Rekap Saldo
   function saveToArchive() {
     const total = calculateTotal();
     if(total <= 0) {
@@ -608,7 +596,108 @@
     printStyle.innerHTML = `@page { size: ${size} auto; margin: 2mm; }`;
   }
 
-  // Init Startup
+  /* === FITUR UTAMA: CETAK KE BLUETOOTH THERMAL (ESC/POS) === */
+  async function printBluetooth() {
+    if (!navigator.bluetooth) {
+      alert("Browser Anda tidak mendukung Web Bluetooth API. Gunakan Chrome di Android/PC.");
+      return;
+    }
+
+    try {
+      const device = await navigator.bluetooth.requestDevice({
+        acceptAllDevices: true,
+        optionalServices: ['00001101-0000-1000-8000-00805f9b34fb', '000018f0-0000-1000-8000-00805f9b34fb']
+      });
+
+      const server = await device.gatt.connect();
+      const services = await server.getPrimaryServices();
+      let targetCharacteristic = null;
+
+      for (const service of services) {
+        const characteristics = await service.getCharacteristics();
+        for (const char of characteristics) {
+          if (char.properties.write || char.properties.writeWithoutResponse) {
+            targetCharacteristic = char;
+            break;
+          }
+        }
+        if (targetCharacteristic) break;
+      }
+
+      if (!targetCharacteristic) {
+        alert("Layanan cetak Bluetooth tidak ditemukan pada perangkat ini.");
+        return;
+      }
+
+      // Format data cetak dalam ESC/POS Command
+      const subName = document.getElementById('in_sub_name').value;
+      const addr1 = document.getElementById('in_addr1').value;
+      const addr2 = document.getElementById('in_addr2').value;
+      const phone = document.getElementById('in_phone').value;
+      const email = document.getElementById('in_email').value;
+      const txType = document.getElementById('in_tx_type').value === 'IN' ? 'SALDO MASUK' : 'SALDO KELUAR';
+      const customer = document.getElementById('in_customer').value;
+      const payment = document.getElementById('in_payment').value;
+      const date = document.getElementById('in_date').value;
+      const cashier = document.getElementById('in_cashier').value;
+      const footer = document.getElementById('in_footer').value;
+      const accName = document.getElementById('in_acc_name').value;
+      const accBank = document.getElementById('in_acc_bank').value;
+      const accNo = document.getElementById('in_acc_no').value;
+
+      const total = calculateTotal();
+      const qty = calculateQty();
+      const payVal = parseFloat(document.getElementById('in_pay_amount').value) || 0;
+      const changeVal = Math.max(0, payVal - total);
+
+      let textToPrint = `\x1B\x40`; // Initialize
+      textToPrint += `\x1B\x61\x01`; // Center Align
+      textToPrint += `\x1B\x21\x20${subName}\x1B\x21\x00\n`; // Bold Large Text
+      textToPrint += `${addr1}\n${addr2}\n${phone}\n${email}\n`;
+      textToPrint += `--------------------------------\n`;
+      textToPrint += `\x1B\x61\x00`; // Left Align
+      textToPrint += `Tipe Struk : ${txType}\n`;
+      textToPrint += `Pembeli    : ${customer}\n`;
+      textToPrint += `Pembayaran : ${payment}\n`;
+      textToPrint += `Tanggal    : ${date}\n`;
+      textToPrint += `Kasir      : ${cashier}\n`;
+      textToPrint += `--------------------------------\n`;
+
+      items.forEach(item => {
+        const sub = item.qty * item.price;
+        textToPrint += `${item.name}\n`;
+        textToPrint += `  ${item.qty} x ${formatRupiah(item.price)} = ${formatRupiah(sub)}\n`;
+      });
+
+      textToPrint += `--------------------------------\n`;
+      textToPrint += `TOTAL ${qty} QTY   : Rp ${formatRupiah(total)}\n`;
+      textToPrint += `Bayar         : Rp ${formatRupiah(payVal)}\n`;
+      textToPrint += `Kembali       : Rp ${formatRupiah(changeVal)}\n`;
+      textToPrint += `--------------------------------\n`;
+      textToPrint += `\x1B\x61\x01`; // Center Align
+      textToPrint += `${footer}\n`;
+      textToPrint += `--------------------------------\n`;
+      textToPrint += `\x1B\x61\x00`; // Left Align
+      textToPrint += `Nama : ${accName}\nBank : ${accBank}\nNoRek: ${accNo}\n`;
+      textToPrint += `\n\n\n`; // Feed lines
+
+      const encoder = new TextEncoder();
+      const dataBytes = encoder.encode(textToPrint);
+
+      // Kirim chunk data per 512 bytes untuk mencegah buffer overflow
+      const chunkSize = 512;
+      for (let i = 0; i < dataBytes.length; i += chunkSize) {
+        const chunk = dataBytes.slice(i, i + chunkSize);
+        await targetCharacteristic.writeValue(chunk);
+      }
+
+      alert("Cetak ke Bluetooth berhasil!");
+    } catch (error) {
+      console.error(error);
+      alert("Gagal menghubungkan atau mencetak: " + error.message);
+    }
+  }
+
   window.onload = function() {
     setRealtimeDate();
     renderItemsForm();
