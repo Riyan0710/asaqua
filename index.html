@@ -688,6 +688,14 @@ document.getElementById('loginScreen').classList.remove('hidden');
 }
 }
 
+// AUTO CHECK LOGIN SESSION SAAT HALAMAN DIMUAT / DIREFRESH
+window.addEventListener('DOMContentLoaded', () => {
+const isLoggedIn = localStorage.getItem('isLoggedIn');
+if (isLoggedIn === 'true') {
+showMainApp();
+}
+});
+
 const Toast = Swal.mixin({
 toast: true,
 position: 'top-end',
@@ -795,6 +803,10 @@ function prepareElementForCapture(element) {
   element.querySelectorAll('input').forEach(input => {
     if (input.type !== 'file' && input.type !== 'hidden') {
       input.setAttribute('value', input.value);
+      if (input.value) {
+        input.style.setProperty('color', '#000000', 'important');
+        input.style.setProperty('-webkit-text-fill-color', '#000000', 'important');
+      }
     }
   });
   element.querySelectorAll('select').forEach(select => {
@@ -802,6 +814,8 @@ function prepareElementForCapture(element) {
     if (selectedOption) {
       select.querySelectorAll('option').forEach(opt => opt.removeAttribute('selected'));
       selectedOption.setAttribute('selected', 'selected');
+      select.style.setProperty('color', '#000000', 'important');
+      select.style.setProperty('-webkit-text-fill-color', '#000000', 'important');
     }
   });
 }
