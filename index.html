@@ -789,16 +789,14 @@ document.body.classList.remove('public-desktop-mode');
 };
 
 // ==========================================
-// FUNGSI UTAMA PENYIAPAN & EKSPOR JPG / PDF LANGSUNG
+// FUNGSI UTAMA PENYIAPAN & EKSPOR JPG / PDF (PERBAIKAN)
 // ==========================================
 function prepareElementForCapture(element) {
-  // Paksa sinkronisasi nilai input text agar terbaca html2canvas
   element.querySelectorAll('input').forEach(input => {
     if (input.type !== 'file' && input.type !== 'hidden') {
       input.setAttribute('value', input.value);
     }
   });
-  // Paksa sinkronisasi pilihan select agar opsi yang terpilih memiliki atribut selected
   element.querySelectorAll('select').forEach(select => {
     const selectedOption = select.options[select.selectedIndex];
     if (selectedOption) {
@@ -808,11 +806,31 @@ function prepareElementForCapture(element) {
   });
 }
 
-window.downloadJPG = function() {
-  const element = document.getElementById('formContent');
-  if (!element) return;
+function getClonedCaptureContainer() {
+  const original = document.getElementById('formContent');
+  const clone = original.cloneNode(true);
+  
+  // Sembunyikan tombol aksi atau elemen no-print pada klon
+  clone.querySelectorAll('.no-print').forEach(el => el.remove());
 
-  prepareElementForCapture(element);
+  // Bungkus klon dengan container offscreen berlebar tetap 1400px agar layout sempurna layaknya di desktop
+  const wrapper = document.createElement('div');
+  wrapper.style.position = 'absolute';
+  wrapper.style.left = '-9999px';
+  wrapper.style.top = '0';
+  wrapper.style.width = '1400px';
+  wrapper.style.backgroundColor = '#ffffff';
+  wrapper.style.padding = '24px';
+  wrapper.appendChild(clone);
+  
+  document.body.appendChild(wrapper);
+  prepareElementForCapture(clone);
+  
+  return { clone, wrapper };
+}
+
+window.downloadJPG = function() {
+  const { clone, wrapper } = getClonedCaptureContainer();
   
   Swal.fire({
     title: 'Memproses JPG',
@@ -821,17 +839,19 @@ window.downloadJPG = function() {
     didOpen: () => { Swal.showLoading(); }
   });
 
-  html2canvas(element, { 
-    scale: 3, 
+  html2canvas(clone, { 
+    scale: 2, 
     useCORS: true, 
     allowTaint: true,
     logging: false,
     windowWidth: 1400
   }).then(canvas => {
     Swal.close();
+    document.body.removeChild(wrapper);
+    
     const link = document.createElement('a');
     link.download = `Penerimaan_Bahan_Baku_${document.getElementById('inputDate').value || 'Data'}.jpg`;
-    link.href = canvas.toDataURL('image/jpeg', 1.0);
+    link.href = canvas.toDataURL('image/jpeg', 0.95);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -839,16 +859,14 @@ window.downloadJPG = function() {
     showToast('success', 'File JPG berhasil diunduh.');
   }).catch(err => {
     Swal.close();
+    if (document.body.contains(wrapper)) document.body.removeChild(wrapper);
     console.error("Gagal ekspor JPG:", err);
     showToast('error', 'Terjadi kesalahan saat ekspor JPG.');
   });
 };
 
 window.downloadPDF = function() {
-  const element = document.getElementById('formContent');
-  if (!element) return;
-
-  prepareElementForCapture(element);
+  const { clone, wrapper } = getClonedCaptureContainer();
 
   Swal.fire({
     title: 'Memproses PDF',
@@ -857,7 +875,7 @@ window.downloadPDF = function() {
     didOpen: () => { Swal.showLoading(); }
   });
 
-  html2canvas(element, { 
+  html2canvas(clone, { 
     scale: 2, 
     useCORS: true, 
     allowTaint: true,
@@ -865,6 +883,8 @@ window.downloadPDF = function() {
     windowWidth: 1400
   }).then(canvas => {
     Swal.close();
+    document.body.removeChild(wrapper);
+
     const imgData = canvas.toDataURL('image/jpeg', 0.95);
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF('p', 'mm', 'a4');
@@ -889,6 +909,7 @@ window.downloadPDF = function() {
     showToast('success', 'File PDF berhasil diunduh.');
   }).catch(err => {
     Swal.close();
+    if (document.body.contains(wrapper)) document.body.removeChild(wrapper);
     console.error("Gagal ekspor PDF:", err);
     showToast('error', 'Terjadi kesalahan saat ekspor PDF.');
   });
@@ -1813,10 +1834,6 @@ updateNextNoUrut();
 showToast('info', 'Tabel berhasil dikosongkan');
 }
 });
-};
-
-window.onload = function() {
-checkLocation();
 };
 </script>
 </body>
