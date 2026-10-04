@@ -25,7 +25,7 @@ background-color: #f3f4f6;
 body.desktop-mode {
 min-width: 1400px;
 }
-/* Paksaan mode desktop untuk modal lihat data publik */
+/* Paksaan mode desktop untuk modal lihat data publik agar tampil full dan tidak terpotong */
 body.public-desktop-mode {
 min-width: 1400px !important;
 overflow-x: auto !important;
@@ -196,12 +196,12 @@ Status Akses: <span id="userRoleBadge" class="font-bold text-indigo-600 uppercas
 <i class="fa-solid fa-print"></i> Cetak
 </button>
 
-<!-- TOMBOL EKSPOR (PNG, PDF, EXCEL) -->
+<!-- TOMBOL EKSPOR (JPG, PDF, EXCEL) -->
 <div class="inline-flex rounded-lg shadow-sm">
-<button onclick="exportDataToPNG()" title="Ekspor ke PNG" class="px-3 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-l-lg transition-colors flex items-center gap-1 border-r border-emerald-700">
-<i class="fa-solid fa-image"></i> PNG
+<button onclick="previewExportJPG()" title="Pratinjau & Ekspor ke JPG" class="px-3 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-l-lg transition-colors flex items-center gap-1 border-r border-emerald-700">
+<i class="fa-solid fa-image"></i> JPG
 </button>
-<button onclick="exportDataToPDF()" title="Ekspor ke PDF" class="px-3 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center gap-1 border-r border-emerald-700">
+<button onclick="previewExportPDF()" title="Pratinjau & Ekspor ke PDF" class="px-3 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center gap-1 border-r border-emerald-700">
 <i class="fa-solid fa-file-pdf"></i> PDF
 </button>
 <button onclick="exportDataToExcel()" title="Ekspor ke Excel" class="px-3 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-r-lg transition-colors flex items-center gap-1">
@@ -421,42 +421,95 @@ Selesai
 </div>
 </div>
 
-<!-- MODAL BACA & EKSPOR DATA PUBLIK TANPA LOGIN -->
-<div id="publicDataModal" class="fixed inset-0 bg-slate-900/80 hidden z-50 flex items-center justify-center p-2 sm:p-4 no-print overflow-x-auto">
-<div class="bg-white rounded-xl w-[1350px] max-w-none p-4 sm:p-6 shadow-2xl border border-gray-200 max-h-[90vh] flex flex-col my-auto">
-<div class="flex justify-between items-center mb-4 border-b pb-3 flex-wrap gap-2">
+<!-- MODAL PRATINJAU EKSPOR (JPG / PDF) -->
+<div id="exportPreviewModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm hidden z-50 flex items-center justify-center p-3 sm:p-6 no-print">
+<div class="bg-white rounded-2xl max-w-4xl w-full shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col overflow-hidden my-auto">
+<div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-4 sm:p-5 flex justify-between items-center shadow-md">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-emerald-600/30 border border-emerald-500/40 flex items-center justify-center text-emerald-400 text-lg shadow-inner">
+<i class="fa-solid fa-eye"></i>
+</div>
 <div>
-<h3 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-file-lines text-indigo-600 mr-2"></i>Data Transaksi Publik</h3>
-<p id="publicDataDateLabel" class="text-xs text-gray-500 font-semibold"></p>
+<h3 id="exportPreviewTitle" class="text-base sm:text-lg font-bold tracking-wide">Pratinjau Dokumen Ekspor</h3>
+<p class="text-xs text-indigo-200 font-medium mt-0.5">Periksa hasil dokumen sebelum diunduh ke perangkat</p>
+</div>
+</div>
+<button onclick="closeExportPreviewModal()" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white flex items-center justify-center transition-all shadow-sm">
+<i class="fa-solid fa-xmark text-lg"></i>
+</button>
+</div>
+
+<div class="p-4 sm:p-6 overflow-y-auto flex-1 bg-slate-100 flex justify-center">
+<div id="exportPreviewCanvasContainer" class="bg-white shadow-xl rounded-lg p-2 max-w-full overflow-x-auto border border-slate-200 flex justify-center">
+  <!-- Canvas/Image render preview will be inserted here -->
+</div>
+</div>
+
+<div class="bg-slate-100 px-6 py-3.5 border-t border-slate-200 flex justify-between items-center">
+<span class="text-xs text-slate-500 font-medium">Pastikan data sudah benar sebelum mengunduh</span>
+<div class="flex items-center gap-2">
+<button onclick="closeExportPreviewModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold rounded-xl transition-all">
+Batal
+</button>
+<button id="confirmDownloadExportBtn" onclick="" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl transition-all shadow-sm flex items-center gap-1.5">
+<i class="fa-solid fa-download"></i> Unduh File
+</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- MODAL BACA & EKSPOR DATA PUBLIK TANPA LOGIN (DIperindah & Profesional Sesuai Gambar Referensi) -->
+<div id="publicDataModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-2 sm:p-6 no-print overflow-x-auto">
+<div class="bg-white rounded-2xl w-[1350px] max-w-none shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col my-auto overflow-hidden">
+<!-- Header Modal Profesional -->
+<div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-5 flex justify-between items-center flex-wrap gap-4 shadow-md">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-400 text-lg shadow-inner">
+<i class="fa-solid fa-clipboard-check"></i>
+</div>
+<div>
+<h3 class="text-base sm:text-lg font-bold tracking-wide">Laporan Data Transaksi Publik</h3>
+<p id="publicDataDateLabel" class="text-xs text-indigo-200 font-medium mt-0.5"></p>
+</div>
 </div>
 <div class="flex items-center gap-2">
-<button onclick="closePublicDataModal()" class="text-gray-400 hover:text-gray-600 text-xl font-bold ml-2"><i class="fa-solid fa-xmark"></i></button>
+<button onclick="closePublicDataModal()" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white flex items-center justify-center transition-all shadow-sm">
+<i class="fa-solid fa-xmark text-lg"></i>
+</button>
 </div>
 </div>
-<div class="overflow-y-auto overflow-x-auto flex-1 border border-gray-200 rounded-lg p-2 bg-gray-50">
-<table class="w-full text-left border-collapse border border-gray-300 text-xs bg-white min-w-[1300px]">
+
+<!-- Body Tabel Publik Yang Elegan (Mode Desktop Dipaksa Sempurna) -->
+<div class="p-4 sm:p-6 overflow-y-auto overflow-x-auto flex-1 bg-slate-50/50">
+<div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+<table class="w-full text-left border-collapse text-xs bg-white min-w-[1300px]">
 <thead>
-<tr class="bg-gray-100 text-gray-700 font-semibold uppercase text-[10px]">
-<th class="border border-gray-300 p-2 text-center w-12">No</th>
-<th class="border border-gray-300 p-2 text-center w-20">Foto</th>
-<th class="border border-gray-300 p-2 min-w-[150px]">Nama Barang</th>
-<th class="border border-gray-300 p-2 text-center w-20">Order</th>
-<th class="border border-gray-300 p-2 text-center w-20">Diterima</th>
-<th class="border border-gray-300 p-2 text-center w-20">Satuan</th>
-<th class="border border-gray-300 p-2 min-w-[110px]">Kemasan</th>
-<th class="border border-gray-300 p-2 min-w-[110px]">Fisik</th>
-<th class="border border-gray-300 p-2 text-center w-20">Suhu</th>
-<th class="border border-gray-300 p-2 text-center w-28">Expired</th>
-<th class="border border-gray-300 p-2 text-center w-20">Spec</th>
-<th class="border border-gray-300 p-2 min-w-[150px]">Keterangan</th>
+<tr class="bg-slate-100/80 text-slate-700 font-bold uppercase text-[10px] tracking-wider border-b border-slate-200">
+<th class="p-3 text-center w-12">No</th>
+<th class="p-3 text-center w-20">Foto</th>
+<th class="p-3 min-w-[150px]">Nama Barang</th>
+<th class="p-3 text-center w-20">Order</th>
+<th class="p-3 text-center w-20">Diterima</th>
+<th class="p-3 text-center w-20">Satuan</th>
+<th class="p-3 min-w-[110px]">Kemasan</th>
+<th class="p-3 min-w-[110px]">Fisik</th>
+<th class="p-3 text-center w-20">Suhu</th>
+<th class="p-3 text-center w-28">Expired</th>
+<th class="p-3 text-center w-20">Spec</th>
+<th class="p-3 min-w-[150px]">Keterangan</th>
 </tr>
 </thead>
-<tbody id="publicTableBody"></tbody>
+<tbody id="publicTableBody" class="divide-y divide-slate-100"></tbody>
 </table>
 </div>
-<div class="mt-4 text-right">
-<button onclick="closePublicDataModal()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 text-xs font-medium rounded-lg transition-colors">
-Tutup
+</div>
+
+<!-- Footer Modal Publik -->
+<div class="bg-slate-100 px-6 py-3.5 border-t border-slate-200 flex justify-between items-center">
+<span class="text-xs text-slate-500 font-medium">Menampilkan rekap data resmi dapur SPPG Kota Serang 2</span>
+<button onclick="closePublicDataModal()" class="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-xl transition-all shadow-sm flex items-center gap-1.5">
+<i class="fa-solid fa-check"></i> Tutup
 </button>
 </div>
 </div>
@@ -743,31 +796,31 @@ const tbody = document.getElementById('publicTableBody');
 tbody.innerHTML = '';
 
 records.forEach((item, idx) => {
-let photoHtml = '-';
+let photoHtml = '<span class="text-slate-400 italic text-[10px]">Tanpa Foto</span>';
 if (item.photo && item.photo.length > 0) {
-photoHtml = item.photo.map(pUrl => `<img src="${formatPhotoUrl(pUrl)}" class="w-8 h-8 object-cover rounded mx-auto cursor-pointer border" onclick="openImagePreview('${formatPhotoUrl(pUrl)}')">`).join(' ');
+photoHtml = item.photo.map(pUrl => `<img src="${formatPhotoUrl(pUrl)}" class="w-10 h-10 object-cover rounded-lg shadow-sm mx-auto cursor-pointer border border-slate-200 hover:scale-105 transition-transform" onclick="openImagePreview('${formatPhotoUrl(pUrl)}')">`).join(' ');
 }
 
 const tr = document.createElement('tr');
-tr.className = 'hover:bg-gray-50 border-b border-gray-200';
+tr.className = 'hover:bg-slate-50/80 transition-colors border-b border-slate-100 text-slate-700';
 tr.innerHTML = `
-<td class="p-2 text-center font-medium">${idx + 1}</td>
-<td class="p-2 text-center">${photoHtml}</td>
-<td class="p-2 font-medium">${item.nama || '-'}</td>
-<td class="p-2 text-center">${item.order || '0'}</td>
-<td class="p-2 text-center">${item.masuk || '0'}</td>
-<td class="p-2 text-center">${item.satuan || '-'}</td>
-<td class="p-2">${item.kemasan || '-'}</td>
-<td class="p-2">${item.fisik || '-'}</td>
-<td class="p-2 text-center">${item.suhu || '-'}</td>
-<td class="p-2 text-center">${item.tglExpired || '-'}</td>
-<td class="p-2 text-center font-semibold">${item.sesuai || '-'}</td>
-<td class="p-2">${item.ket || '-'}</td>
+<td class="p-3 text-center font-semibold text-slate-500">${idx + 1}</td>
+<td class="p-3 text-center">${photoHtml}</td>
+<td class="p-3 font-semibold text-slate-900">${item.nama || '-'}</td>
+<td class="p-3 text-center font-medium">${item.order || '0'}</td>
+<td class="p-3 text-center font-bold text-emerald-600">${item.masuk || '0'}</td>
+<td class="p-3 text-center text-slate-600">${item.satuan || '-'}</td>
+<td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${item.kemasan === 'Baik' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}">${item.kemasan || '-'}</span></td>
+<td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${item.fisik === 'Segar' || item.fisik === 'Baik' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}">${item.fisik || '-'}</span></td>
+<td class="p-3 text-center font-medium">${item.suhu ? item.suhu + '°C' : '-'}</td>
+<td class="p-3 text-center text-slate-600">${item.tglExpired || '-'}</td>
+<td class="p-3 text-center"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${item.sesuai === 'Ya' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${item.sesuai || '-'}</span></td>
+<td class="p-3 text-slate-500 italic">${item.ket || '-'}</td>
 `;
 tbody.appendChild(tr);
 });
 
-document.getElementById('publicDataDateLabel').innerText = `Tanggal: ${dateInput}`;
+document.getElementById('publicDataDateLabel').innerText = `Tanggal Laporan: ${dateInput}`;
 document.body.classList.add('public-desktop-mode');
 document.getElementById('publicDataModal').classList.remove('hidden');
 };
@@ -778,7 +831,7 @@ document.body.classList.remove('public-desktop-mode');
 };
 
 // ==========================================
-// PERBAIKAN UTAMA: FUNGSI EKSPOR PNG & PDF YANG STABIL DAN LANGSUNG TERUNDUH KE LOKAL
+// FITUR PRATINJAU & EKSPOR JPG / PDF
 // ==========================================
 function prepareElementForCapture(element) {
   element.querySelectorAll('input').forEach(input => {
@@ -795,46 +848,132 @@ function prepareElementForCapture(element) {
   });
 }
 
-window.exportDataToPNG = function() {
+window.previewExportJPG = function() {
   const element = document.getElementById('formContent');
   if (!element) return;
 
   prepareElementForCapture(element);
-  showToast('info', 'Memproses gambar PNG...');
+  
+  Swal.fire({
+    title: 'Menyiapkan Pratinjau JPG',
+    text: 'Mohon tunggu sebentar...',
+    allowOutsideClick: false,
+    didOpen: () => { Swal.showLoading(); }
+  });
 
   html2canvas(element, { 
-    scale: 1.5, 
+    scale: 2, 
     useCORS: true, 
     allowTaint: true,
-    logging: false 
+    logging: false,
+    windowWidth: 1400
   }).then(canvas => {
-    const link = document.createElement('a');
-    link.download = `Penerimaan_Bahan_Baku_${document.getElementById('inputDate').value || 'Data'}.png`;
-    link.href = canvas.toDataURL('image/png');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    showToast('success', 'Ekspor PNG Berhasil diunduh ke lokal!');
+    Swal.close();
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+    
+    document.getElementById('exportPreviewTitle').innerText = 'Pratinjau Dokumen (JPG)';
+    document.getElementById('exportPreviewCanvasContainer').innerHTML = `<img src="${dataUrl}" class="max-w-full h-auto rounded shadow border border-slate-200">`;
+    document.getElementById('confirmDownloadExportBtn').setAttribute('onclick', 'executeExportJPG()');
+    document.getElementById('exportPreviewModal').classList.remove('hidden');
   }).catch(err => {
-    console.error("Gagal ekspor PNG:", err);
-    showToast('error', 'Gagal mengekspor PNG');
+    Swal.close();
+    console.error("Gagal buat pratinjau JPG:", err);
+    showToast('error', 'Terjadi kesalahan saat menyiapkan pratinjau.');
   });
 };
 
-window.exportDataToPDF = function() {
+window.executeExportJPG = function() {
+  closeExportPreviewModal();
+  const element = document.getElementById('formContent');
+  if (!element) return;
+
+  Swal.fire({
+    title: 'Memproses JPG',
+    text: 'Merender dokumen resolusi tajam...',
+    allowOutsideClick: false,
+    didOpen: () => { Swal.showLoading(); }
+  });
+
+  html2canvas(element, { 
+    scale: 3, 
+    useCORS: true, 
+    allowTaint: true,
+    logging: false,
+    windowWidth: 1400
+  }).then(canvas => {
+    const link = document.createElement('a');
+    link.download = `Penerimaan_Bahan_Baku_${document.getElementById('inputDate').value || 'Data'}.jpg`;
+    link.href = canvas.toDataURL('image/jpeg', 1.0);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    Swal.fire({
+      icon: 'success',
+      title: 'Berhasil!',
+      text: 'File JPG tajam berhasil diunduh.',
+      timer: 2000,
+      showConfirmButton: false
+    });
+  }).catch(err => {
+    Swal.fire({ icon: 'error', title: 'Gagal', text: 'Terjadi kesalahan saat ekspor JPG.' });
+  });
+};
+
+window.previewExportPDF = function() {
   const element = document.getElementById('formContent');
   if (!element) return;
 
   prepareElementForCapture(element);
-  showToast('info', 'Memproses dokumen PDF...');
+
+  Swal.fire({
+    title: 'Menyiapkan Pratinjau PDF',
+    text: 'Mohon tunggu sebentar...',
+    allowOutsideClick: false,
+    didOpen: () => { Swal.showLoading(); }
+  });
 
   html2canvas(element, { 
-    scale: 1.5, 
+    scale: 2, 
     useCORS: true, 
     allowTaint: true,
-    logging: false 
+    logging: false,
+    windowWidth: 1400
   }).then(canvas => {
-    const imgData = canvas.toDataURL('image/png');
+    Swal.close();
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.90);
+
+    document.getElementById('exportPreviewTitle').innerText = 'Pratinjau Dokumen (PDF)';
+    document.getElementById('exportPreviewCanvasContainer').innerHTML = `<img src="${dataUrl}" class="max-w-full h-auto rounded shadow border border-slate-200">`;
+    document.getElementById('confirmDownloadExportBtn').setAttribute('onclick', 'executeExportPDF()');
+    document.getElementById('exportPreviewModal').classList.remove('hidden');
+  }).catch(err => {
+    Swal.close();
+    console.error("Gagal buat pratinjau PDF:", err);
+    showToast('error', 'Terjadi kesalahan saat menyiapkan pratinjau.');
+  });
+};
+
+window.executeExportPDF = function() {
+  closeExportPreviewModal();
+  const element = document.getElementById('formContent');
+  if (!element) return;
+
+  Swal.fire({
+    title: 'Memproses PDF',
+    text: 'Sedang merender dokumen ke format PDF...',
+    allowOutsideClick: false,
+    didOpen: () => { Swal.showLoading(); }
+  });
+
+  html2canvas(element, { 
+    scale: 2, 
+    useCORS: true, 
+    allowTaint: true,
+    logging: false,
+    windowWidth: 1400
+  }).then(canvas => {
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF('p', 'mm', 'a4');
     const imgWidth = 210;
@@ -843,22 +982,32 @@ window.exportDataToPDF = function() {
     let heightLeft = imgHeight;
     let position = 0;
 
-    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
     heightLeft -= pageHeight;
 
     while (heightLeft >= 0) {
       position = heightLeft - imgHeight;
       pdf.addPage();
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
     }
 
     pdf.save(`Penerimaan_Bahan_Baku_${document.getElementById('inputDate').value || 'Data'}.pdf`);
-    showToast('success', 'Ekspor PDF Berhasil diunduh ke lokal!');
+    
+    Swal.fire({
+      icon: 'success',
+      title: 'Berhasil!',
+      text: 'File PDF berhasil diunduh.',
+      timer: 2000,
+      showConfirmButton: false
+    });
   }).catch(err => {
-    console.error("Gagal ekspor PDF:", err);
-    showToast('error', 'Gagal mengekspor PDF');
+    Swal.fire({ icon: 'error', title: 'Gagal', text: 'Terjadi kesalahan saat ekspor PDF.' });
   });
+};
+
+window.closeExportPreviewModal = function() {
+  document.getElementById('exportPreviewModal').classList.add('hidden');
 };
 
 window.exportDataToExcel = function() {
