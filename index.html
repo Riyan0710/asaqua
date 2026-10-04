@@ -196,12 +196,12 @@ Status Akses: <span id="userRoleBadge" class="font-bold text-indigo-600 uppercas
 <i class="fa-solid fa-print"></i> Cetak
 </button>
 
-<!-- TOMBOL EKSPOR (JPG, PDF, EXCEL) -->
+<!-- TOMBOL EKSPOR LANGSUNG (JPG, PDF, EXCEL) -->
 <div class="inline-flex rounded-lg shadow-sm">
-<button onclick="previewExportJPG()" title="Pratinjau & Ekspor ke JPG" class="px-3 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-l-lg transition-colors flex items-center gap-1 border-r border-emerald-700">
+<button onclick="downloadJPG()" title="Unduh ke JPG" class="px-3 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-l-lg transition-colors flex items-center gap-1 border-r border-emerald-700">
 <i class="fa-solid fa-image"></i> JPG
 </button>
-<button onclick="previewExportPDF()" title="Pratinjau & Ekspor ke PDF" class="px-3 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center gap-1 border-r border-emerald-700">
+<button onclick="downloadPDF()" title="Unduh ke PDF" class="px-3 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center gap-1 border-r border-emerald-700">
 <i class="fa-solid fa-file-pdf"></i> PDF
 </button>
 <button onclick="exportDataToExcel()" title="Ekspor ke Excel" class="px-3 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-r-lg transition-colors flex items-center gap-1">
@@ -421,48 +421,9 @@ Selesai
 </div>
 </div>
 
-<!-- MODAL PRATINJAU EKSPOR (JPG / PDF) -->
-<div id="exportPreviewModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm hidden z-50 flex items-center justify-center p-3 sm:p-6 no-print">
-<div class="bg-white rounded-2xl max-w-4xl w-full shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col overflow-hidden my-auto">
-<div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-4 sm:p-5 flex justify-between items-center shadow-md">
-<div class="flex items-center gap-3">
-<div class="w-10 h-10 rounded-xl bg-emerald-600/30 border border-emerald-500/40 flex items-center justify-center text-emerald-400 text-lg shadow-inner">
-<i class="fa-solid fa-eye"></i>
-</div>
-<div>
-<h3 id="exportPreviewTitle" class="text-base sm:text-lg font-bold tracking-wide">Pratinjau Dokumen Ekspor</h3>
-<p class="text-xs text-indigo-200 font-medium mt-0.5">Periksa hasil dokumen sebelum diunduh ke perangkat</p>
-</div>
-</div>
-<button onclick="closeExportPreviewModal()" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white flex items-center justify-center transition-all shadow-sm">
-<i class="fa-solid fa-xmark text-lg"></i>
-</button>
-</div>
-
-<div class="p-4 sm:p-6 overflow-y-auto flex-1 bg-slate-100 flex justify-center">
-<div id="exportPreviewCanvasContainer" class="bg-white shadow-xl rounded-lg p-2 max-w-full overflow-x-auto border border-slate-200 flex justify-center">
-  <!-- Canvas/Image render preview will be inserted here -->
-</div>
-</div>
-
-<div class="bg-slate-100 px-6 py-3.5 border-t border-slate-200 flex justify-between items-center">
-<span class="text-xs text-slate-500 font-medium">Pastikan data sudah benar sebelum mengunduh</span>
-<div class="flex items-center gap-2">
-<button onclick="closeExportPreviewModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold rounded-xl transition-all">
-Batal
-</button>
-<button id="confirmDownloadExportBtn" onclick="" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl transition-all shadow-sm flex items-center gap-1.5">
-<i class="fa-solid fa-download"></i> Unduh File
-</button>
-</div>
-</div>
-</div>
-</div>
-
-<!-- MODAL BACA & EKSPOR DATA PUBLIK TANPA LOGIN (DIperindah & Profesional Sesuai Gambar Referensi) -->
+<!-- MODAL BACA & EKSPOR DATA PUBLIK TANPA LOGIN -->
 <div id="publicDataModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-2 sm:p-6 no-print overflow-x-auto">
 <div class="bg-white rounded-2xl w-[1350px] max-w-none shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col my-auto overflow-hidden">
-<!-- Header Modal Profesional -->
 <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-5 flex justify-between items-center flex-wrap gap-4 shadow-md">
 <div class="flex items-center gap-3">
 <div class="w-10 h-10 rounded-xl bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-400 text-lg shadow-inner">
@@ -480,7 +441,6 @@ Batal
 </div>
 </div>
 
-<!-- Body Tabel Publik Yang Elegan (Mode Desktop Dipaksa Sempurna) -->
 <div class="p-4 sm:p-6 overflow-y-auto overflow-x-auto flex-1 bg-slate-50/50">
 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
 <table class="w-full text-left border-collapse text-xs bg-white min-w-[1300px]">
@@ -505,7 +465,6 @@ Batal
 </div>
 </div>
 
-<!-- Footer Modal Publik -->
 <div class="bg-slate-100 px-6 py-3.5 border-t border-slate-200 flex justify-between items-center">
 <span class="text-xs text-slate-500 font-medium">Menampilkan rekap data resmi dapur SPPG Kota Serang 2</span>
 <button onclick="closePublicDataModal()" class="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-xl transition-all shadow-sm flex items-center gap-1.5">
@@ -595,7 +554,6 @@ const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwKfirt58sKPJln
 let tempFormFiles = [];
 let tempFormPhotos = [];
 
-// DAFTAR KATA KUNCI NAMA BARANG KEMASAN YANG WAJIB ISI EXPIRED
 const KEMASAN_KEYWORDS = [
   'minyak', 'gula', 'susu', 'kecap', 'saos', 'saus', 'mentega', 'sirup', 
   'terigu', 'tepung', 'sarden', 'kaleng', 'kopi', 'teh', 'mi', 'mie', 
@@ -831,14 +789,16 @@ document.body.classList.remove('public-desktop-mode');
 };
 
 // ==========================================
-// FITUR PRATINJAU & EKSPOR JPG / PDF
+// FUNGSI UTAMA PENYIAPAN & EKSPOR JPG / PDF LANGSUNG
 // ==========================================
 function prepareElementForCapture(element) {
+  // Paksa sinkronisasi nilai input text agar terbaca html2canvas
   element.querySelectorAll('input').forEach(input => {
     if (input.type !== 'file' && input.type !== 'hidden') {
       input.setAttribute('value', input.value);
     }
   });
+  // Paksa sinkronisasi pilihan select agar opsi yang terpilih memiliki atribut selected
   element.querySelectorAll('select').forEach(select => {
     const selectedOption = select.options[select.selectedIndex];
     if (selectedOption) {
@@ -848,45 +808,12 @@ function prepareElementForCapture(element) {
   });
 }
 
-window.previewExportJPG = function() {
+window.downloadJPG = function() {
   const element = document.getElementById('formContent');
   if (!element) return;
 
   prepareElementForCapture(element);
   
-  Swal.fire({
-    title: 'Menyiapkan Pratinjau JPG',
-    text: 'Mohon tunggu sebentar...',
-    allowOutsideClick: false,
-    didOpen: () => { Swal.showLoading(); }
-  });
-
-  html2canvas(element, { 
-    scale: 2, 
-    useCORS: true, 
-    allowTaint: true,
-    logging: false,
-    windowWidth: 1400
-  }).then(canvas => {
-    Swal.close();
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
-    
-    document.getElementById('exportPreviewTitle').innerText = 'Pratinjau Dokumen (JPG)';
-    document.getElementById('exportPreviewCanvasContainer').innerHTML = `<img src="${dataUrl}" class="max-w-full h-auto rounded shadow border border-slate-200">`;
-    document.getElementById('confirmDownloadExportBtn').setAttribute('onclick', 'executeExportJPG()');
-    document.getElementById('exportPreviewModal').classList.remove('hidden');
-  }).catch(err => {
-    Swal.close();
-    console.error("Gagal buat pratinjau JPG:", err);
-    showToast('error', 'Terjadi kesalahan saat menyiapkan pratinjau.');
-  });
-};
-
-window.executeExportJPG = function() {
-  closeExportPreviewModal();
-  const element = document.getElementById('formContent');
-  if (!element) return;
-
   Swal.fire({
     title: 'Memproses JPG',
     text: 'Merender dokumen resolusi tajam...',
@@ -901,6 +828,7 @@ window.executeExportJPG = function() {
     logging: false,
     windowWidth: 1400
   }).then(canvas => {
+    Swal.close();
     const link = document.createElement('a');
     link.download = `Penerimaan_Bahan_Baku_${document.getElementById('inputDate').value || 'Data'}.jpg`;
     link.href = canvas.toDataURL('image/jpeg', 1.0);
@@ -908,56 +836,19 @@ window.executeExportJPG = function() {
     link.click();
     document.body.removeChild(link);
     
-    Swal.fire({
-      icon: 'success',
-      title: 'Berhasil!',
-      text: 'File JPG tajam berhasil diunduh.',
-      timer: 2000,
-      showConfirmButton: false
-    });
+    showToast('success', 'File JPG berhasil diunduh.');
   }).catch(err => {
-    Swal.fire({ icon: 'error', title: 'Gagal', text: 'Terjadi kesalahan saat ekspor JPG.' });
+    Swal.close();
+    console.error("Gagal ekspor JPG:", err);
+    showToast('error', 'Terjadi kesalahan saat ekspor JPG.');
   });
 };
 
-window.previewExportPDF = function() {
+window.downloadPDF = function() {
   const element = document.getElementById('formContent');
   if (!element) return;
 
   prepareElementForCapture(element);
-
-  Swal.fire({
-    title: 'Menyiapkan Pratinjau PDF',
-    text: 'Mohon tunggu sebentar...',
-    allowOutsideClick: false,
-    didOpen: () => { Swal.showLoading(); }
-  });
-
-  html2canvas(element, { 
-    scale: 2, 
-    useCORS: true, 
-    allowTaint: true,
-    logging: false,
-    windowWidth: 1400
-  }).then(canvas => {
-    Swal.close();
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.90);
-
-    document.getElementById('exportPreviewTitle').innerText = 'Pratinjau Dokumen (PDF)';
-    document.getElementById('exportPreviewCanvasContainer').innerHTML = `<img src="${dataUrl}" class="max-w-full h-auto rounded shadow border border-slate-200">`;
-    document.getElementById('confirmDownloadExportBtn').setAttribute('onclick', 'executeExportPDF()');
-    document.getElementById('exportPreviewModal').classList.remove('hidden');
-  }).catch(err => {
-    Swal.close();
-    console.error("Gagal buat pratinjau PDF:", err);
-    showToast('error', 'Terjadi kesalahan saat menyiapkan pratinjau.');
-  });
-};
-
-window.executeExportPDF = function() {
-  closeExportPreviewModal();
-  const element = document.getElementById('formContent');
-  if (!element) return;
 
   Swal.fire({
     title: 'Memproses PDF',
@@ -973,6 +864,7 @@ window.executeExportPDF = function() {
     logging: false,
     windowWidth: 1400
   }).then(canvas => {
+    Swal.close();
     const imgData = canvas.toDataURL('image/jpeg', 0.95);
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF('p', 'mm', 'a4');
@@ -994,20 +886,12 @@ window.executeExportPDF = function() {
 
     pdf.save(`Penerimaan_Bahan_Baku_${document.getElementById('inputDate').value || 'Data'}.pdf`);
     
-    Swal.fire({
-      icon: 'success',
-      title: 'Berhasil!',
-      text: 'File PDF berhasil diunduh.',
-      timer: 2000,
-      showConfirmButton: false
-    });
+    showToast('success', 'File PDF berhasil diunduh.');
   }).catch(err => {
-    Swal.fire({ icon: 'error', title: 'Gagal', text: 'Terjadi kesalahan saat ekspor PDF.' });
+    Swal.close();
+    console.error("Gagal ekspor PDF:", err);
+    showToast('error', 'Terjadi kesalahan saat ekspor PDF.');
   });
-};
-
-window.closeExportPreviewModal = function() {
-  document.getElementById('exportPreviewModal').classList.add('hidden');
 };
 
 window.exportDataToExcel = function() {
