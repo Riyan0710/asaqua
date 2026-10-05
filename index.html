@@ -797,16 +797,15 @@ document.body.classList.remove('public-desktop-mode');
 };
 
 // ==========================================
-// FUNGSI UTAMA PENYIAPAN & EKSPOR JPG / PDF (TANPA INTERNET / LOKAL DOM)
+// FUNGSI UTAMA PENYIAPAN & EKSPOR JPG / PDF (FIX TAMPILAN KOSONG)
 // ==========================================
 function prepareElementForCapture(element) {
   element.querySelectorAll('input').forEach(input => {
     if (input.type !== 'file' && input.type !== 'hidden') {
       input.setAttribute('value', input.value);
-      if (input.value) {
-        input.style.setProperty('color', '#000000', 'important');
-        input.style.setProperty('-webkit-text-fill-color', '#000000', 'important');
-      }
+      input.style.setProperty('color', '#000000', 'important');
+      input.style.setProperty('-webkit-text-fill-color', '#000000', 'important');
+      input.style.setProperty('opacity', '1', 'important');
     }
   });
   element.querySelectorAll('select').forEach(select => {
@@ -816,6 +815,7 @@ function prepareElementForCapture(element) {
       selectedOption.setAttribute('selected', 'selected');
       select.style.setProperty('color', '#000000', 'important');
       select.style.setProperty('-webkit-text-fill-color', '#000000', 'important');
+      select.style.setProperty('opacity', '1', 'important');
     }
   });
 }
