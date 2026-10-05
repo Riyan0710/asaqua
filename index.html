@@ -797,7 +797,7 @@ document.body.classList.remove('public-desktop-mode');
 };
 
 // ==========================================
-// FUNGSI UTAMA PENYIAPAN & EKSPOR JPG / PDF (PERBAIKAN)
+// FUNGSI UTAMA PENYIAPAN & EKSPOR JPG / PDF (TANPA INTERNET / LOKAL DOM)
 // ==========================================
 function prepareElementForCapture(element) {
   element.querySelectorAll('input').forEach(input => {
@@ -848,7 +848,7 @@ window.downloadJPG = function() {
   
   Swal.fire({
     title: 'Memproses JPG',
-    text: 'Merender dokumen resolusi tajam...',
+    text: 'Merender dokumen secara lokal...',
     allowOutsideClick: false,
     didOpen: () => { Swal.showLoading(); }
   });
@@ -870,7 +870,7 @@ window.downloadJPG = function() {
     link.click();
     document.body.removeChild(link);
     
-    showToast('success', 'File JPG berhasil diunduh.');
+    showToast('success', 'File JPG berhasil diunduh ke perangkat.');
   }).catch(err => {
     Swal.close();
     if (document.body.contains(wrapper)) document.body.removeChild(wrapper);
@@ -884,7 +884,7 @@ window.downloadPDF = function() {
 
   Swal.fire({
     title: 'Memproses PDF',
-    text: 'Sedang merender dokumen ke format PDF...',
+    text: 'Sedang merender dokumen ke format PDF secara lokal...',
     allowOutsideClick: false,
     didOpen: () => { Swal.showLoading(); }
   });
@@ -920,7 +920,7 @@ window.downloadPDF = function() {
 
     pdf.save(`Penerimaan_Bahan_Baku_${document.getElementById('inputDate').value || 'Data'}.pdf`);
     
-    showToast('success', 'File PDF berhasil diunduh.');
+    showToast('success', 'File PDF berhasil diunduh ke perangkat.');
   }).catch(err => {
     Swal.close();
     if (document.body.contains(wrapper)) document.body.removeChild(wrapper);
